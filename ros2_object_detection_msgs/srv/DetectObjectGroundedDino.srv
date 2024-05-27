@@ -4,4 +4,4 @@ string prompt
 ---
 
 # bounding box
-ros2_detr_msgs/msg/BoundingBoxes bounding_boxes
+BoundingBox[] bounding_boxes

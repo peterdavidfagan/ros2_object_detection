@@ -15,13 +15,12 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
 set(msg_files
-  "msgs/BoundingBox.msg",
-  "msgs/BoundingBoxes.msg",
+  "msgs/BoundingBox.msg"
 )
 
 set(srv_files
-  "srv/DetectObjectDETR.srv",
-  "srv/DetectObjectGroundedDino.srv",
+  "srv/DetectObjectDETR.srv"
+  "srv/DetectObjectGroundedDino.srv"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

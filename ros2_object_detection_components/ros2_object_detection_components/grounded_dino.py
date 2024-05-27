@@ -66,7 +66,6 @@ class GroundedDino(Node):
 
         # convert ROS image message to opencv
         bgra_img = self.cv_bridge.imgmsg_to_cv2(self._latest_rgb_image, "rgb8")
-        rgb_img = cv2.cvtColor(bgra_img, cv2.)
         
         # perform Grounded Dino inference
         self.get_logger().info('Running Grounded Dino Inference...')

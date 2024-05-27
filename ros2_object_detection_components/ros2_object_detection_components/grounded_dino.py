@@ -8,11 +8,14 @@ from PIL import Image
 import requests
 
 from rclpy.node import Node
+from ros2_object_detection_msgs.msg import BoundingBoxes, BoundingBox
+from ros2_object_detection_msgs.srv import DetectObjectGroundedDino
+
 
 class GroundedDino(Node):
 
-    def __init__(self):
-        super().__init__('detr_object_detection')
+    def __init__(self, image_topic: str):
+        super().__init__('grounded_dino_object_detection')
         self.logger = self.get_logger() # instantiate logger
 
         # pull image processor and detr model from huggingface
@@ -36,7 +39,7 @@ class GroundedDino(Node):
         # subscribe to camera image
         self.subscription = self.create_subscription(
             Image,
-            '/zed2i/zed_node/rgb/image_rect_color',
+            image_topic,
             self._image_callback,
             callback_group=self.camera_callback_group,
             )
@@ -58,9 +61,8 @@ class GroundedDino(Node):
 
     def _detect_object(self, request, response):
         # parse request
-        text = request.text
+        text = request.prompt
         confidence_threshold = request.confidence
-        class_name = request.object_class
 
         # convert ROS image message to opencv
         bgra_img = self.cv_bridge.imgmsg_to_cv2(self._latest_rgb_image, "rgb8")
@@ -68,7 +70,7 @@ class GroundedDino(Node):
         
         # perform Grounded Dino inference
         self.get_logger().info('Running Grounded Dino Inference...')
-        inputs = self.processor(images=self.)_latest_rgb_image, text=text, return_tensors="pt").to(device)
+        inputs = self.processor(images=self._latest_rgb_image, text=text, return_tensors="pt").to(device)
         with torch.no_grad():
             outputs = self.model(**inputs)
 
@@ -81,8 +83,7 @@ class GroundedDino(Node):
                 target_sizes=[self._latest_rgb_image.size[::-1]]
             )
 
-        for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
-            if label == class_name:
+        #for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
                 # TODO: complete the response message
                 # box = [round(i, 2) for i in box.tolist()]
                 # print(
@@ -96,7 +97,7 @@ class GroundedDino(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    grounded_dino = GroundedDino()
+    grounded_dino = GroundedDino(image_topic='placeholder') # move to args when finished debugging
     rclpy.spin(grounded_dino)
     detr.destroy_node()
     rclpy.shutdown()

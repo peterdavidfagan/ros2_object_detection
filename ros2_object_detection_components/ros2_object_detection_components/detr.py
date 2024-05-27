@@ -8,11 +8,12 @@ from PIL import Image
 import requests
 
 from rclpy.node import Node
-from ros2_detr_msgs.msg import BoundingBoxes, BoundingBox
+from ros2_object_detection_msgs.msg import BoundingBoxes, BoundingBox
+from ros2_object_detection_msgs.srv import DetectObjectDETR 
 
 class DETR(Node):
 
-    def __init__(self):
+    def __init__(self, image_topic: str):
         super().__init__('detr_object_detection')
         self.logger = self.get_logger() # instantiate logger
 
@@ -36,7 +37,7 @@ class DETR(Node):
         # subscribe to camera image
         self.subscription = self.create_subscription(
             Image,
-            '/zed2i/zed_node/rgb/image_rect_color',
+            image_topic,
             self._image_callback,
             callback_group=self.camera_callback_group,
             )
@@ -99,7 +100,7 @@ class DETR(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    detr = DETR()
+    detr = DETR(image_topic='placeholder') # move image topic to args when finished debugging
     rclpy.spin(detr)
     detr.destroy_node()
     rclpy.shutdown()

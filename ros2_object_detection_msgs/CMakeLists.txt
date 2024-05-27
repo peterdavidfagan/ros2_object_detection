@@ -20,7 +20,8 @@ set(msg_files
 )
 
 set(srv_files
-  "srv/DetectObject.srv"
+  "srv/DetectObjectDETR.srv",
+  "srv/DetectObjectGroundedDino.srv",
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

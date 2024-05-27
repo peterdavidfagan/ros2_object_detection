@@ -1,24 +1,24 @@
 """
-A node for performing object detection with DETR.
+A node for performing object detection with grounded dino.
 """
 
-from transformers import DetrImageProcessor, DetrForObjectDetection
+from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
 import torch
 from PIL import Image
 import requests
 
 from rclpy.node import Node
-from ros2_detr_msgs.msg import BoundingBoxes, BoundingBox
 
-class DETR(Node):
+class GroundedDino(Node):
 
     def __init__(self):
         super().__init__('detr_object_detection')
         self.logger = self.get_logger() # instantiate logger
 
         # pull image processor and detr model from huggingface
-        self.processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50", revision="no_timm")
-        self.model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50", revision="no_timm")
+        model_id = "IDEA-Research/grounding-dino-tiny"
+        self.processor = AutoProcessor.from_pretrained(model_id)
+        self.model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id).to(device)
 
         # create a bridge between ROS2 and OpenCV
         self.cv_bridge = CvBridge()
@@ -44,20 +44,21 @@ class DETR(Node):
         # create service for requesting object detection
         self.srv = self.create_service(
                 DetectObject, 
-                'detr_detect_object', 
+                'grounded_dino_detect_object', 
                 self._detect_object,
                 )
         
         # track latest image
         self._latest_rgb_image = None
 
-        self.logger.info("DETR object detection service is ready.")
+        self.logger.info("Grounded Dino object detection service is ready.")
 
     def _image_callback(self, rgb):
         self._latest_rgb_image = rgb
 
     def _detect_object(self, request, response):
-        # parse request message data
+        # parse request
+        text = request.text
         confidence_threshold = request.confidence
         class_name = request.object_class
 
@@ -65,42 +66,38 @@ class DETR(Node):
         bgra_img = self.cv_bridge.imgmsg_to_cv2(self._latest_rgb_image, "rgb8")
         rgb_img = cv2.cvtColor(bgra_img, cv2.)
         
-        # perform DETR inference
-        self.get_logger().info('Running DETR Inference...')
-        inputs = self.processor(images = rgb_img, return_tensors='pt') # preprocess image data
-        predictions = self.model(**inputs)
+        # perform Grounded Dino inference
+        self.get_logger().info('Running Grounded Dino Inference...')
+        inputs = self.processor(images=self.)_latest_rgb_image, text=text, return_tensors="pt").to(device)
+        with torch.no_grad():
+            outputs = self.model(**inputs)
 
         # parse predictions
-        target_sizes = torch.tensor([image.size[::-1]])
-        results = processor.post_process_object_detection(predictions, target_sizes=target_sizes, threshold=confidence_threshold)[0]
+        results = processor.post_process_grounded_object_detection(
+                outputs,
+                inputs.input_ids,
+                box_threshold=0.4, # TODO: read this from config
+                text_threshold=0.3, # TODO: read this from config
+                target_sizes=[self._latest_rgb_image.size[::-1]]
+            )
 
-        bboxs = []
         for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
-            if label == class_name:                
-                box = [round(i, 2) for i in box.tolist()]
-                
-                # complete bounding box message
-                bbox = BoundingBox()
-                bbox['confidence'] = score
-                bbox['Class'] = label
-                bbox['xmin'] = box[0]
-                bbox['ymin'] = box[1]
-                bbox['xmax'] = box[2]
-                bbox['ymax'] = box[3]
-
-                bboxs.append(bbox)
+            if label == class_name:
+                # TODO: complete the response message
+                # box = [round(i, 2) for i in box.tolist()]
+                # print(
+                #         f"Detected {model.config.id2label[label.item()]} with confidence "
+                #         f"{round(score.item(), 3)} at location {box}"
+                # )
         
         # return parsed predictions data
-        predictions = BoundingBoxes()
-        predictions.bounding_boxes = bboxs
-        response.bounding_boxes = predictions
-
+        
         return response
 
 def main(args=None):
     rclpy.init(args=args)
-    detr = DETR()
-    rclpy.spin(detr)
+    grounded_dino = GroundedDino()
+    rclpy.spin(grounded_dino)
     detr.destroy_node()
     rclpy.shutdown()
 

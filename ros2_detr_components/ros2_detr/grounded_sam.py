@@ -1,5 +1,5 @@
 """
-A node for performing object detection with DETR.
+A node for performing object detection with grounded sam.
 """
 
 from transformers import DetrImageProcessor, DetrForObjectDetection
@@ -8,9 +8,8 @@ from PIL import Image
 import requests
 
 from rclpy.node import Node
-from ros2_detr_msgs.msg import BoundingBoxes, BoundingBox
 
-class DETR(Node):
+class GroundedSam(Node):
 
     def __init__(self):
         super().__init__('detr_object_detection')
@@ -57,10 +56,6 @@ class DETR(Node):
         self._latest_rgb_image = rgb
 
     def _detect_object(self, request, response):
-        # parse request message data
-        confidence_threshold = request.confidence
-        class_name = request.object_class
-
         # convert ROS image message to opencv
         bgra_img = self.cv_bridge.imgmsg_to_cv2(self._latest_rgb_image, "rgb8")
         rgb_img = cv2.cvtColor(bgra_img, cv2.)
@@ -72,29 +67,18 @@ class DETR(Node):
 
         # parse predictions
         target_sizes = torch.tensor([image.size[::-1]])
-        results = processor.post_process_object_detection(predictions, target_sizes=target_sizes, threshold=confidence_threshold)[0]
+        results = processor.post_process_object_detection(predictions, target_sizes=target_sizes, threshold=0.9)[0]
 
-        bboxs = []
         for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
-            if label == class_name:                
+            if label == "apple":
                 box = [round(i, 2) for i in box.tolist()]
-                
-                # complete bounding box message
-                bbox = BoundingBox()
-                bbox['confidence'] = score
-                bbox['Class'] = label
-                bbox['xmin'] = box[0]
-                bbox['ymin'] = box[1]
-                bbox['xmax'] = box[2]
-                bbox['ymax'] = box[3]
-
-                bboxs.append(bbox)
+                print(
+                        f"Detected {model.config.id2label[label.item()]} with confidence "
+                        f"{round(score.item(), 3)} at location {box}"
+                )
         
         # return parsed predictions data
-        predictions = BoundingBoxes()
-        predictions.bounding_boxes = bboxs
-        response.bounding_boxes = predictions
-
+        
         return response
 
 def main(args=None):

@@ -1,0 +1,7 @@
+float64 confidence_threshold
+string object_class
+
+---
+
+# bounding box
+ros2_detr_msgs/msg/BoundingBoxes bounding_boxes

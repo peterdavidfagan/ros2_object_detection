@@ -1,13 +1,12 @@
 from setuptools import setup
 
-package_name = 'moveit2_data_collector'
+package_name = 'ros2_object_detection_components'
 
 setup(
  name=package_name,
  version='0.0.0',
  packages=[
-     'moveit2_data_collector',
-     'moveit2_data_collector.robot_workspaces',
+     'ros2_object_detection_components',
      ],
  data_files=[
      ('share/ament_index/resource_index/packages',

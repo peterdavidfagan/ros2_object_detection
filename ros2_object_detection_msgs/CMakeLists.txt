@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(ros2_deep_grasps_interfaces)
+project(ros2_object_detection_msgs)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -15,7 +15,7 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
 set(srv_files
-  "srv/GraspPose.srv"
+  "srv/DetectObject.srv"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

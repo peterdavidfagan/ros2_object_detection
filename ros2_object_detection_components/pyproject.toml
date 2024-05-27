@@ -1,5 +1,5 @@
 [project]
-name = "moveit2_data_collector"
+name = "ros2_object_detection_components"
 version = "0.0.0"
 description = "A PyQT application used to collect datasets for training transporter networks."
 authors = [
@@ -9,7 +9,7 @@ readme = "README.md"
 
 [tool.poetry]
 package-mode=false
-name = "moveit2_data_collector"
+name = "ros2_object_detection_components"
 version = "0.0.0"
 description = "A PyQT application used to collect datasets for training transporter networks."
 license = "Apache-2.0"

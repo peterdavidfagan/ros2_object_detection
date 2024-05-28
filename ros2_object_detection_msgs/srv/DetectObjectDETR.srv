@@ -3,5 +3,4 @@ string object_class
 
 ---
 
-# bounding box
 BoundingBox[] bounding_boxes

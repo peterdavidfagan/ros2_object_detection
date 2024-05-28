@@ -4,3 +4,4 @@ string prompt
 ---
 
 BoundingBox[] bounding_boxes
+Masks[] masks

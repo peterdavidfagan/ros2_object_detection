@@ -85,6 +85,7 @@ class GroundedDino(Node):
 
         # perform Grounded Dino inference
         self.get_logger().info('Running Grounded Dino Inference...')
+        self.get_logger().info(f'Using Prompt {text}')
         inputs = self.processor(images=rgb_img, text=text, return_tensors="pt").to(self.device)
         with torch.no_grad():
             outputs = self.model(**inputs)
@@ -93,8 +94,8 @@ class GroundedDino(Node):
         results = self.processor.post_process_grounded_object_detection(
                 outputs,
                 inputs.input_ids,
-                box_threshold=0.4, # TODO: read this from config
-                text_threshold=0.3, # TODO: read this from config
+                box_threshold=0.2, # TODO: read this from config
+                text_threshold=0.2, # TODO: read this from config
                 target_sizes=[rgb_img.size[::-1]]
             )[0]
 
@@ -105,7 +106,7 @@ class GroundedDino(Node):
             # complete bounding box message
             bbox = BoundingBox()
             bbox.confidence = float(score)
-            bbox.object = label
+            bbox.object = label.replace(' ', '_')
             bbox.xmin = int(box[0])
             bbox.ymin = int(box[1])
             bbox.xmax = int(box[2])
@@ -131,7 +132,7 @@ class GroundedDino(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    grounded_dino = GroundedDino(image_topic='overhead_camera') # move to args when finished debugging
+    grounded_dino = GroundedDino(image_topic='overhead_camera_rgb') # move to args when finished debugging
     rclpy.spin(grounded_dino)
     detr.destroy_node()
     rclpy.shutdown()

@@ -1,7 +1,7 @@
 """
 A node for performing object detection with grounded dino.
 """
-
+import argparse
 from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
 import torch
 import numpy as np
@@ -131,8 +131,17 @@ class GroundedDino(Node):
         return response
 
 def main(args=None):
+    parser = argparse.ArgumentParser(description="GroundedDino node")
+    parser.add_argument(
+        '--topic', 
+        type=str, 
+        default='overhead_camera_rgb', 
+        help='The topic name for the image feed'
+    )
+    parsed_args = parser.parse_args(args=args)
+    
     rclpy.init(args=args)
-    grounded_dino = GroundedDino(image_topic='overhead_camera_rgb') # move to args when finished debugging
+    grounded_dino = GroundedDino(image_topic=parser.topic) # move to args when finished debugging
     rclpy.spin(grounded_dino)
     detr.destroy_node()
     rclpy.shutdown()

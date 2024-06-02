@@ -11,6 +11,7 @@
 
   <depend>backward_ros</depend>
   <depend>generate_parameter_library</depend>
+  <depend>image_pipeline</depend>
 
   <exec_depend>rviz2</exec_depend>
   <exec_depend>xacro</exec_depend>

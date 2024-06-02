@@ -141,7 +141,7 @@ def main(args=None):
     parsed_args = parser.parse_args(args=args)
     
     rclpy.init(args=args)
-    grounded_dino = GroundedDino(image_topic=parser.topic) # move to args when finished debugging
+    grounded_dino = GroundedDino(image_topic=parsed_args.topic) # move to args when finished debugging
     rclpy.spin(grounded_dino)
     detr.destroy_node()
     rclpy.shutdown()
